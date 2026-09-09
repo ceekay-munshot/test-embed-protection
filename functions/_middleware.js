@@ -1,3 +1,10 @@
+// Cloudflare PAGES Function (`wrangler pages deploy`).
+//
+// This project deploys to Workers static assets, where Pages Functions do
+// NOT run — worker/index.ts enforces the same rules there. This file is kept
+// for the Pages deployment path; keep its allowed-origin list identical to
+// the lists in worker/index.ts and public/_headers.
+
 export async function onRequest(context) {
   const request = context.request;
 
