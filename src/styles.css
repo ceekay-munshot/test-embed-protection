@@ -1,0 +1,293 @@
+/* Munshot dashboard shell — design tokens live in reference/ui-standards.md. */
+
+:root {
+  --primary: #4f46e5;
+  --primary-light: #eef2ff;
+  --primary-border: #e0e7ff;
+  --primary-text: #4338ca;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-header: rgba(255, 255, 255, 0.95);
+  --card-body: rgba(249, 250, 251, 0.5);
+  --border-default: rgba(229, 231, 235, 0.8);
+  --border-hover: rgba(79, 70, 229, 0.2);
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --text-hint: #9ca3af;
+  --error-red: #ef4444;
+  --error-bg: #fef2f2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+textarea,
+input {
+  font-family: inherit;
+}
+
+/* ---------- shell ---------- */
+
+.dashboard-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(to bottom, rgba(249, 250, 251, 0.8), #ffffff);
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #111827;
+}
+
+/* ---------- widget card ---------- */
+
+.widget-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.widget-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(79, 70, 229, 0.06);
+}
+
+/* The chat card holds focus and a scroll position; lifting it under the
+   cursor fights typing, so it keeps the border treatment only. */
+.widget-card--static:hover {
+  transform: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border-color: var(--border-hover);
+}
+
+/* ---------- loading shimmer ---------- */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer {
+  background-image: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* ---------- live pulse ---------- */
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+
+.live-dot {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.stream-caret {
+  animation: caret-blink 1s step-end infinite;
+}
+
+/* ---------- controls ---------- */
+
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ghost-button:hover:not(:disabled) {
+  color: var(--primary-text);
+  border-color: var(--border-hover);
+  background: var(--primary-light);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  background: #f3f4f6;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.segmented button {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: #ffffff;
+  color: var(--primary-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.chip {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: left;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chip:hover:not(:disabled) {
+  color: var(--primary-text);
+  border-color: var(--border-hover);
+  background: var(--primary-light);
+}
+
+.send-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.send-button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.chat-input {
+  flex: 1;
+  min-height: 38px;
+  max-height: 120px;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: #ffffff;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-input:focus {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+}
+
+.chat-input::placeholder {
+  color: var(--text-hint);
+}
+
+/* ---------- scrollbars ---------- */
+
+.scroll-area {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.scroll-area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  .widget-card,
+  .shimmer,
+  .live-dot,
+  .stream-caret {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .widget-card:hover {
+    transform: none;
+  }
+}
+
+/* A wide card spans two columns only when the grid actually has two. */
+.span-2 {
+  grid-column: span 1;
+}
+
+@media (min-width: 820px) {
+  .span-2 {
+    grid-column: span 2;
+  }
+}

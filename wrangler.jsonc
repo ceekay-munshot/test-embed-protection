@@ -1,0 +1,17 @@
+{
+  // Cloudflare Pages static-assets config.
+  //
+  // `pages_build_output_dir` is what makes this a Pages project: Wrangler
+  // publishes everything in ./dist as static assets, and automatically picks up
+  // ./functions/_middleware.js as a Pages Function that runs on every request
+  // (embed protection — see reference/embed-protection.md).
+  //
+  // `dist/_headers` (copied verbatim from ./public by Vite) sets the
+  // frame-ancestors CSP at the deployed asset root.
+  //
+  // Deploy:  npm run build && npx wrangler pages deploy
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "munshot-ai-analyst-live-quote",
+  "compatibility_date": "2025-09-01",
+  "pages_build_output_dir": "./dist"
+}
