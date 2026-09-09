@@ -72,10 +72,14 @@ src/hooks/useHostContext.ts  session + market context (per auth-standards §4)
 src/lib/api.ts           stock_data + llm_chat clients, key=value parser
 src/Dashboard.tsx        3-zone shell, widgets, capture handlers
 src/components/          WidgetCard, states, KPI, chat, sparkline, source trail
+worker/index.ts          Workers entry: embed protection, then serves assets
 public/_headers          frame-ancestors CSP -> copied to dist/ root by Vite
-functions/_middleware.js Pages Function: direct-URL and rogue-iframe redirect
-wrangler.jsonc           Cloudflare Pages static-assets config
+functions/_middleware.js same rules for a Pages deployment (unused on Workers)
+wrangler.jsonc           Cloudflare Workers static-assets config
 ```
+
+The allowed-origin list appears in **three** files — `worker/index.ts`,
+`functions/_middleware.js` and `public/_headers`. Change them together.
 
 ## Local development
 
@@ -92,51 +96,53 @@ npm run build        # tsc --noEmit && vite build — must pass with no type err
 npm run typecheck    # types only
 ```
 
-## Deploy (Cloudflare Pages)
+## Deploy (Cloudflare Workers static assets)
 
-`wrangler.jsonc` sets `pages_build_output_dir: "./dist"`, so Wrangler publishes
-`dist/` as static assets and compiles `functions/_middleware.js` into a Pages
-Function automatically.
+This project deploys as a **Worker with static assets**, using `wrangler deploy`.
 
-**First deploy**
+`wrangler.jsonc` does three things that matter:
+
+- `build.command` runs `npm run build` first, so `wrangler deploy` works on a clean
+  checkout even when the CI pipeline has no separate build step.
+- `assets.directory` publishes `dist/` (including the `_headers` file Vite copies
+  there from `public/`).
+- `assets.run_worker_first` routes every request through `worker/index.ts` before the
+  asset server — that is what enforces the direct-URL redirect. Pages Functions do
+  **not** run on a Workers deployment, so `functions/_middleware.js` is inert here;
+  it is kept only for the Pages deployment path.
+
+**Deploy**
 
 ```bash
 npm install
-npm run build
-npx wrangler login                       # once per machine
-npx wrangler pages project create munshot-ai-analyst-live-quote --production-branch main
-npx wrangler pages deploy                # uses wrangler.jsonc; no directory argument needed
+npx wrangler deploy      # runs the build itself, then uploads Worker + assets
 ```
 
-**Subsequent deploys**
+**Connected to Git (Workers Builds)** — the deploy command in the Cloudflare
+dashboard should be `npx wrangler deploy`. No build command is required, because
+`wrangler.jsonc` carries one; setting the build command to `npm run build` as well is
+harmless.
+
+**Preview locally with the Worker and headers active**
 
 ```bash
-npm run build && npx wrangler pages deploy
+npx wrangler dev
 ```
 
-**Or via the Cloudflare dashboard** (Workers & Pages → Create → Pages → Connect to Git):
-
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Functions directory: `functions` (detected automatically)
-- Node version: 20 or newer
-
-**Preview locally with the Function and headers active**
-
-```bash
-npm run build && npx wrangler pages dev dist
-```
+**Deploying to Pages instead?** Swap `main` / `build` / `assets` in `wrangler.jsonc`
+for `"pages_build_output_dir": "./dist"`, then `npm run build && npx wrangler pages
+deploy`. `functions/_middleware.js` becomes the active middleware in that setup.
 
 ### Post-deploy checklist
 
 1. **Embed protection — direct URL.** Open the deployed URL in a browser tab. It must
-   redirect to `https://chat.muns.io`. If it loads normally, `_middleware.js` is not
-   running and the placement is wrong.
+   redirect to `https://chat.muns.io`. If it loads normally, the Worker is not running
+   in front of the assets — check that `assets.run_worker_first` is still set.
 2. **Embed protection — CSP.** `curl -sD- https://<your-deployment>/ | grep -i content-security-policy`
    must return `frame-ancestors 'self' https://chat.muns.io https://devfe.muns.io;`.
-3. **Allowed origins.** The domain list is environment-specific and appears in **both**
-   `public/_headers` and `functions/_middleware.js`. Confirm the host origins for the
-   target environment and keep the two lists identical.
+3. **Allowed origins.** The domain list is environment-specific and appears in
+   `worker/index.ts`, `public/_headers` and `functions/_middleware.js`. Confirm the host
+   origins for the target environment and keep all three lists identical.
 4. **CORS allowlist (host-side).** The deployed domain must be CORS-allowlisted on the
    Munshot APIs (`fastapi.muns.io`) or every request will fail even though the host
    forwards the token correctly. Coordinate this with the platform team.
